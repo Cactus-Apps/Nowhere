@@ -1,0 +1,16 @@
+{
+  "name": "expo-mock-location",
+  "version": "1.0.0",
+  "description": "Expo config plugin for mocking GPS locations on Android",
+  "main": "app.plugin.js",
+  "files": [
+    "app.plugin.js",
+    "plugin/**/*"
+  ],
+  "peerDependencies": {
+    "expo": ">=50.0.0"
+  },
+  "devDependencies": {
+    "@expo/config-plugins": "^8.0.0"
+  }
+}
