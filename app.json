@@ -3,7 +3,7 @@
     "name": "Atalasys-Hide_Phantom",
     "slug": "Atalasys-Hide_Phantom",
     "scheme": "atalasyshidephantom",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "dark",
@@ -21,7 +21,13 @@
     },
     "plugins": [
       ["./plugins/expo-mock-location/app.plugin.js", {}],
-      "expo-router"
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Phantom GPS benoetigt deinen Standort, um ihn auf der Karte anzuzeigen."
+        }
+      ]
     ],
     "ios": {
       "bundleIdentifier": "com.atalasyshidephantom.app"
