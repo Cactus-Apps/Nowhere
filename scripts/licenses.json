@@ -1,0 +1,325 @@
+[
+  {
+    "name": "@expo-google-fonts/space-grotesk",
+    "version": "0.4.1",
+    "license": "MIT AND OFL-1.1",
+    "licenses": null,
+    "repository": "git+https://github.com/expo/google-fonts.git",
+    "homepage": "https://github.com/expo/google-fonts/tree/master/font-packages/space-grotesk#readme",
+    "author": "Expo Team <team@expo.io>",
+    "kind": "dep"
+  },
+  {
+    "name": "@gorhom/bottom-sheet",
+    "version": "5.2.14",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/gorhom/react-native-bottom-sheet",
+    "homepage": "https://gorhom.dev/react-native-bottom-sheet/",
+    "author": "Mo Gorhom (https://gorhom.dev)",
+    "kind": "dep"
+  },
+  {
+    "name": "@korsolutions/react-native-joystick",
+    "version": "2.0.1",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/korsoftwaresolutions/react-native-joystick.git",
+    "homepage": "https://github.com/korsoftwaresolutions/react-native-joystick",
+    "author": {
+      "email": "ion@korol.dev",
+      "name": "Ion Korol",
+      "url": "https://korsolutions.net"
+    },
+    "kind": "dep"
+  },
+  {
+    "name": "@react-native-async-storage/async-storage",
+    "version": "2.2.0",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/react-native-async-storage/async-storage.git",
+    "homepage": "https://github.com/react-native-async-storage/async-storage#readme",
+    "author": "Krzysztof Borowy <contact@kborowy.com>",
+    "kind": "dep"
+  },
+  {
+    "name": "@react-native-community/slider",
+    "version": "5.2.0",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/callstack/react-native-slider.git",
+    "homepage": "https://github.com/callstack/react-native-slider#readme",
+    "author": "react-native-community",
+    "kind": "dep"
+  },
+  {
+    "name": "@types/react",
+    "version": "19.2.18",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+    "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react",
+    "author": null,
+    "kind": "dev"
+  },
+  {
+    "name": "babel-preset-expo",
+    "version": "57.0.15",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "git+https://github.com/expo/expo.git",
+    "homepage": "https://github.com/expo/expo/tree/main/packages/babel-preset-expo#readme",
+    "author": "Expo <support@expo.dev>",
+    "kind": "dev"
+  },
+  {
+    "name": "expo",
+    "version": "57.0.29",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/expo/expo.git",
+    "homepage": "https://github.com/expo/expo/tree/main/packages/expo",
+    "author": "Expo",
+    "kind": "dep"
+  },
+  {
+    "name": "expo-constants",
+    "version": "57.0.22",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/expo/expo.git",
+    "homepage": "https://docs.expo.dev/versions/latest/sdk/constants/",
+    "author": "650 Industries, Inc.",
+    "kind": "dep"
+  },
+  {
+    "name": "expo-haptics",
+    "version": "57.0.3",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/expo/expo.git",
+    "homepage": "https://docs.expo.dev/versions/latest/sdk/haptics/",
+    "author": "650 Industries, Inc.",
+    "kind": "dep"
+  },
+  {
+    "name": "expo-intent-launcher",
+    "version": "57.0.1",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/expo/expo.git",
+    "homepage": "https://docs.expo.dev/versions/latest/sdk/intent-launcher/",
+    "author": "650 Industries, Inc.",
+    "kind": "dep"
+  },
+  {
+    "name": "expo-linking",
+    "version": "57.0.13",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/expo/expo.git",
+    "homepage": "https://docs.expo.dev/versions/latest/sdk/linking",
+    "author": "650 Industries, Inc.",
+    "kind": "dep"
+  },
+  {
+    "name": "expo-location",
+    "version": "57.0.21",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/expo/expo.git",
+    "homepage": "https://docs.expo.dev/versions/latest/sdk/location/",
+    "author": "650 Industries, Inc.",
+    "kind": "dep"
+  },
+  {
+    "name": "expo-router",
+    "version": "57.0.27",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/expo/expo.git",
+    "homepage": "https://docs.expo.dev/routing/introduction/",
+    "author": "650 Industries, Inc.",
+    "kind": "dep"
+  },
+  {
+    "name": "expo-status-bar",
+    "version": "57.0.1",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/expo/expo.git",
+    "homepage": "https://docs.expo.dev/versions/latest/sdk/status-bar/",
+    "author": "650 Industries, Inc.",
+    "kind": "dep"
+  },
+  {
+    "name": "expo-task-manager",
+    "version": "57.0.21",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/expo/expo.git",
+    "homepage": "https://docs.expo.dev/versions/latest/sdk/task-manager/",
+    "author": "650 Industries, Inc.",
+    "kind": "dep"
+  },
+  {
+    "name": "i18next",
+    "version": "26.5.2",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/i18next/i18next.git",
+    "homepage": "https://www.i18next.com",
+    "author": "Jan M\u00fchlemann <jan.muehlemann@gmail.com> (https://github.com/jamuhl)",
+    "kind": "dep"
+  },
+  {
+    "name": "lucide-react-native",
+    "version": "0.546.0",
+    "license": "ISC",
+    "licenses": null,
+    "repository": "https://github.com/lucide-icons/lucide.git",
+    "homepage": "https://lucide.dev",
+    "author": "Eric Fennis",
+    "kind": "dep"
+  },
+  {
+    "name": "react",
+    "version": "19.2.3",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/facebook/react.git",
+    "homepage": "https://react.dev/",
+    "author": null,
+    "kind": "dep"
+  },
+  {
+    "name": "react-i18next",
+    "version": "17.1.0",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/i18next/react-i18next.git",
+    "homepage": "https://github.com/i18next/react-i18next",
+    "author": "Jan M\u00fchlemann <jan.muehlemann@gmail.com> (https://github.com/jamuhl)",
+    "kind": "dep"
+  },
+  {
+    "name": "react-native",
+    "version": "0.86.3",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "git+https://github.com/react/react-native.git",
+    "homepage": "https://reactnative.dev/",
+    "author": null,
+    "kind": "dep"
+  },
+  {
+    "name": "react-native-gesture-handler",
+    "version": "2.32.0",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "git+https://github.com/software-mansion/react-native-gesture-handler.git",
+    "homepage": "https://docs.swmansion.com/react-native-gesture-handler/",
+    "author": {
+      "email": "krzys.magiera@gmail.com",
+      "name": "Krzysztof Magiera"
+    },
+    "kind": "dep"
+  },
+  {
+    "name": "react-native-maplibre-gl-js",
+    "version": "1.24.6",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "git+https://github.com/emilienaufauvre/react-native-maplibre-gl-js.git",
+    "homepage": "https://github.com/emilienaufauvre/react-native-maplibre-gl-js#readme",
+    "author": "Emilien Aufauvre <emilien.aufauvre@live.fr> (https://github.com/emilienaufauvre)",
+    "kind": "dep"
+  },
+  {
+    "name": "react-native-reanimated",
+    "version": "4.5.1",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "git+https://github.com/software-mansion/react-native-reanimated.git",
+    "homepage": "https://docs.swmansion.com/react-native-reanimated",
+    "author": {
+      "email": "krzys.magiera@gmail.com",
+      "name": "Krzysztof Magiera"
+    },
+    "kind": "dep"
+  },
+  {
+    "name": "react-native-safe-area-context",
+    "version": "5.7.0",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/AppAndFlow/react-native-safe-area-context.git",
+    "homepage": "https://github.com/AppAndFlow/react-native-safe-area-context#readme",
+    "author": "Janic Duplessis <janicduplessis@gmail.com>",
+    "kind": "dep"
+  },
+  {
+    "name": "react-native-screens",
+    "version": "4.26.2",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "git+https://github.com/software-mansion/react-native-screens.git",
+    "homepage": "https://github.com/software-mansion/react-native-screens#readme",
+    "author": {
+      "email": "krzys.magiera@gmail.com",
+      "name": "Krzysztof Magiera"
+    },
+    "kind": "dep"
+  },
+  {
+    "name": "react-native-svg",
+    "version": "15.15.4",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/react-native-community/react-native-svg",
+    "homepage": "https://github.com/react-native-community/react-native-svg",
+    "author": null,
+    "kind": "dep"
+  },
+  {
+    "name": "react-native-webview",
+    "version": "13.16.1",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/react-native-webview/react-native-webview.git",
+    "homepage": "https://github.com/react-native-webview/react-native-webview#readme",
+    "author": "Jamon Holmgren <jamon@infinite.red>",
+    "kind": "dep"
+  },
+  {
+    "name": "react-native-worklets",
+    "version": "0.10.1",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "git+https://github.com/software-mansion/react-native-reanimated.git",
+    "homepage": "https://docs.swmansion.com/react-native-worklets",
+    "author": null,
+    "kind": "dep"
+  },
+  {
+    "name": "react-refresh",
+    "version": "0.14.2",
+    "license": "MIT",
+    "licenses": null,
+    "repository": "https://github.com/facebook/react.git",
+    "homepage": "https://reactjs.org/",
+    "author": null,
+    "kind": "dev"
+  },
+  {
+    "name": "typescript",
+    "version": "6.0.3",
+    "license": "Apache-2.0",
+    "licenses": null,
+    "repository": "https://github.com/microsoft/TypeScript.git",
+    "homepage": "https://www.typescriptlang.org/",
+    "author": "Microsoft Corp.",
+    "kind": "dev"
+  }
+]

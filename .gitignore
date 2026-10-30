@@ -10,4 +10,4 @@ ios/
 *.mobileprovision
 *.orig.*
 web-build/
-.env
+.env.local

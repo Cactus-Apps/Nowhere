@@ -1,39 +1,369 @@
+import Joystick, { JoystickValue } from "@/components/joystick";
+import SettingsModal from "@/components/modals/settingsModal";
+import {
+  DEFAULT_COORD,
+  MIN_FORCE,
+  TICK_MS,
+} from "@/components/simulate/constants";
+import { getCurrentCoord, locationFailureMessage } from "@/lib/geo/location";
+import { formatSpeed } from "@/lib/geo/units";
+import { usePlaceLabel } from "@/lib/geo/usePlaceLabel";
+import {
+  feedMockIfActive,
+  getMockPosition,
+  holdMock,
+  mockErrorMessage,
+  setMockPosition,
+} from "@/lib/mockModules/mockLocation";
+import {
+  readSimRuntime,
+  writeSimRuntime,
+  writeSimRuntimeThrottled,
+} from "@/lib/mockModules/simRuntime";
+import { useStore } from "@/lib/storage/store";
+import { colors, radius, resolveMapStyle, spacing, typography } from "@/theme";
 import { router } from "expo-router";
-import { ArrowLeft } from "lucide-react-native";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import { ArrowLeft, Settings } from "lucide-react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  Alert,
+  AppState,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import {
+  Map,
+  MapProvider,
+  MapRef,
+  Marker,
+  MarkerRef,
+} from "react-native-maplibre-gl-js";
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 export default function FreeRoamScreen() {
   return (
-    <SafeAreaView style={styles.root}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.back}>
-          <ArrowLeft size={20} color="#f2f4f8" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Frei bewegen</Text>
-      </View>
-      <View style={styles.body} />
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <FreeRoam />
+    </SafeAreaProvider>
+  );
+}
+
+function FreeRoam() {
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const { walkSpeed, joystickSide, units, mapStyle } = useStore();
+  const speedRef = useRef(walkSpeed);
+  speedRef.current = walkSpeed;
+  const mapRef = useRef<MapRef | null>(null);
+  const walkerRef = useRef<MarkerRef | null>(null);
+  const posRef = useRef<[number, number]>(DEFAULT_COORD);
+  const vectorRef = useRef<JoystickValue>({ x: 0, y: 0, force: 0 });
+  const mockStartedRef = useRef(false);
+  const backgroundedAtRef = useRef(0);
+  const adoptingRef = useRef(false);
+  const mockAlertShownRef = useRef(false);
+  const [coord, setCoord] = useState<[number, number]>(DEFAULT_COORD);
+  const [moving, setMoving] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const placeLabel = usePlaceLabel(coord);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const mockPos = getMockPosition();
+      if (mockPos) {
+        posRef.current = mockPos;
+        setCoord(mockPos);
+        walkerRef.current?.setLngLat(mockPos);
+        mapRef.current?.flyTo({ center: mockPos, zoom: 16, duration: 800 });
+        return;
+      }
+      const result = await getCurrentCoord();
+      if (cancelled) return;
+      if (!result.ok) {
+        Alert.alert(t("location_title"), locationFailureMessage(result.reason));
+        return;
+      }
+      const start = result.coord;
+      posRef.current = start;
+      setCoord(start);
+      walkerRef.current?.setLngLat(start);
+      mapRef.current?.flyTo({ center: start, zoom: 16, duration: 800 });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (adoptingRef.current) return;
+      const { x, y, force } = vectorRef.current;
+      if (force < MIN_FORCE) return;
+      const [lng, lat] = posRef.current;
+      const meters = speedRef.current * force * (TICK_MS / 1000);
+      const dLat = (-y * meters) / 111320;
+      const dLng =
+        (x * meters) /
+        (111320 * Math.max(Math.cos((lat * Math.PI) / 180), 0.01));
+      const next: [number, number] = [lng + dLng, lat + dLat];
+      posRef.current = next;
+      setCoord(next);
+      walkerRef.current?.setLngLat(next);
+      mapRef.current?.setCenter(next);
+      feedMockIfActive(next);
+      writeSimRuntimeThrottled({
+        kind: "joystick",
+        active: true,
+        coord: next,
+        vx: x * force * speedRef.current,
+        vy: -y * force * speedRef.current,
+        speed: speedRef.current,
+        updatedAt: Date.now(),
+      });
+    }, TICK_MS);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      holdMock();
+      void writeSimRuntime({
+        kind: "joystick",
+        active: false,
+        coord: posRef.current,
+        vx: 0,
+        vy: 0,
+        speed: speedRef.current,
+        updatedAt: Date.now(),
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state !== "active") {
+        if (state === "background") backgroundedAtRef.current = Date.now();
+        return;
+      }
+      vectorRef.current = { x: 0, y: 0, force: 0 };
+      setMoving(false);
+      mockStartedRef.current = false;
+      void (async () => {
+        const runtime = await readSimRuntime();
+        if (
+          runtime?.kind !== "joystick" ||
+          runtime.updatedAt <= backgroundedAtRef.current
+        ) {
+          return;
+        }
+        adoptingRef.current = true;
+        posRef.current = runtime.coord;
+        setCoord(runtime.coord);
+        walkerRef.current?.setLngLat(runtime.coord);
+        mapRef.current?.setCenter(runtime.coord);
+        holdMock();
+        void setMockPosition(runtime.coord[1], runtime.coord[0]);
+        await writeSimRuntime({
+          ...runtime,
+          active: false,
+          vx: 0,
+          vy: 0,
+          updatedAt: Date.now(),
+        });
+        adoptingRef.current = false;
+      })();
+    });
+    return () => sub.remove();
+  }, []);
+
+  const handleMove = (value: JoystickValue) => {
+    vectorRef.current = value;
+    if (value.force >= MIN_FORCE) {
+      if (!moving) setMoving(true);
+      if (!mockStartedRef.current) {
+        mockStartedRef.current = true;
+        void setMockPosition(posRef.current[1], posRef.current[0]).catch(() => {
+          if (!mockAlertShownRef.current) {
+            mockAlertShownRef.current = true;
+            Alert.alert(t("mock_not_active_title"), mockErrorMessage());
+          }
+        });
+      }
+    }
+  };
+  const handleEnd = () => {
+    vectorRef.current = { x: 0, y: 0, force: 0 };
+    setMoving(false);
+    mockStartedRef.current = false;
+    holdMock();
+    void writeSimRuntime({
+      kind: "joystick",
+      active: false,
+      coord: posRef.current,
+      vx: 0,
+      vy: 0,
+      speed: speedRef.current,
+      updatedAt: Date.now(),
+    });
+  };
+
+  const mapOptions = useMemo(
+    () => ({
+      style: resolveMapStyle(mapStyle),
+      center: DEFAULT_COORD,
+      zoom: 16,
+    }),
+    [mapStyle],
+  );
+
+  const mapElement = useMemo(
+    () => (
+      <Map
+        ref={mapRef}
+        options={mapOptions}
+        listeners={{
+          mount: {
+            rnListener: () => mapRef.current?.setProjection({ type: "globe" }),
+          },
+        }}
+      />
+    ),
+    [mapOptions],
+  );
+
+  const markerElement = useMemo(
+    () => (
+      <Marker
+        ref={walkerRef}
+        options={{
+          coordinate: DEFAULT_COORD,
+          element: {
+            innerHTML: `
+                <style>
+                  .pin {
+                    width: 18px;
+                    height: 18px;
+                    background: ${colors.accent};
+                    border: 3px solid ${colors.white};
+                    border-radius: 50%;
+                    box-shadow: 0 0 0 6px rgba(78,124,255,0.18), 0 4px 12px rgba(0,0,0,0.5);
+                  }
+                </style>
+                <div class="pin"></div>
+              `,
+          },
+        }}
+      />
+    ),
+    [],
+  );
+
+  return (
+    <GestureHandlerRootView style={styles.root}>
+      <StatusBar style="light" />
+      <MapProvider>
+        {mapElement}
+        {markerElement}
+
+        <View style={[styles.topBar, { top: insets.top + spacing.sm }]}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.back}>
+            <ArrowLeft size={20} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.title}>{t("home_start_free")}</Text>
+          <TouchableOpacity
+            onPress={() => setSettingsOpen(true)}
+            style={styles.back}
+          >
+            <Settings size={20} color={colors.text} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={[styles.hud, { top: insets.top + spacing.sm + 56 }]}>
+          <Text style={styles.hudPlace} numberOfLines={1}>
+            {placeLabel || t("common_place_loading")}
+          </Text>
+          <Text style={styles.hudCoord}>
+            {coord[1].toFixed(5)}, {coord[0].toFixed(5)}
+          </Text>
+          <Text style={[styles.hudState, moving && styles.hudStateActive]}>
+            {moving ? t("common_moving") : t("common_ready")} ·{" "}
+            {formatSpeed(walkSpeed, units)}
+          </Text>
+        </View>
+
+        <View
+          style={[
+            styles.joystickWrap,
+            { bottom: insets.bottom + spacing.xxl },
+            joystickSide === "right"
+              ? { right: spacing.lg, left: undefined }
+              : { left: spacing.lg, right: undefined },
+          ]}
+        >
+          <Joystick size={120} onChange={handleMove} onEnd={handleEnd} />
+        </View>
+      </MapProvider>
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        feature="walk"
+      />
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#0a0a0a" },
+  root: { flex: 1, backgroundColor: colors.bg },
   topBar: {
+    position: "absolute",
+    left: spacing.lg,
+    right: spacing.lg,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 12,
+    gap: spacing.md,
   },
   back: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: "#16181e",
+    width: 40,
+    height: 40,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
-  title: { fontSize: 17, fontWeight: "700", color: "#f2f4f8" },
-  body: { flex: 1 },
+  title: {
+    ...typography.body,
+    fontWeight: "700",
+    color: colors.text,
+    flex: 1,
+  },
+  hud: {
+    position: "absolute",
+    left: spacing.lg,
+    backgroundColor: "rgba(21, 23, 26, 0.88)",
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: 2,
+    maxWidth: "70%",
+  },
+  hudPlace: { ...typography.label, fontWeight: "600", color: colors.text },
+  hudCoord: { ...typography.caption, color: colors.textMuted },
+  hudState: { ...typography.caption, color: colors.textMuted },
+  hudStateActive: { color: colors.accent },
+  joystickWrap: {
+    position: "absolute",
+  },
 });
