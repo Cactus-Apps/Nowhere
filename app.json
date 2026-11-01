@@ -3,7 +3,7 @@
     "name": "Nowhere",
     "slug": "nowhere",
     "scheme": "nowhere",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "orientation": "portrait",
     "icon": "./assets/icons/Nowhere_logo_half.png",
     "userInterfaceStyle": "dark",
@@ -46,6 +46,7 @@
         }
       ],
       "./plugins/withBackgroundPermissions/app.plugin.js",
+      "./plugins/withAndroidSizeOptimization.js",
       "expo-status-bar"
     ],
     "ios": {
@@ -62,7 +63,7 @@
         "projectId": "ccea1e79-a8f5-4e53-bab1-80532e2b3c51"
       }
     },
-    "owner": "nowhere127",
+    "owner": "helloworld127",
     "runtimeVersion": "1",
     "updates": {
       "url": "https://u.expo.dev/ccea1e79-a8f5-4e53-bab1-80532e2b3c51"
