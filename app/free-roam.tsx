@@ -16,6 +16,7 @@ import {
   setMockPosition,
 } from "@/lib/mockModules/mockLocation";
 import {
+  markForegroundTick,
   readSimRuntime,
   writeSimRuntime,
   writeSimRuntimeThrottled,
@@ -106,6 +107,7 @@ function FreeRoam() {
   useEffect(() => {
     const id = setInterval(() => {
       if (adoptingRef.current) return;
+      markForegroundTick();
       const { x, y, force } = vectorRef.current;
       if (force < MIN_FORCE) return;
       const [lng, lat] = posRef.current;
@@ -119,7 +121,7 @@ function FreeRoam() {
       setCoord(next);
       walkerRef.current?.setLngLat(next);
       mapRef.current?.setCenter(next);
-      feedMockIfActive(next);
+      feedMockIfActive(next, TICK_MS);
       writeSimRuntimeThrottled({
         kind: "joystick",
         active: true,
@@ -152,20 +154,33 @@ function FreeRoam() {
     const sub = AppState.addEventListener("change", (state) => {
       if (state !== "active") {
         if (state === "background") backgroundedAtRef.current = Date.now();
+        const { x, y, force } = vectorRef.current;
+        if (force >= MIN_FORCE) {
+          void writeSimRuntime({
+            kind: "joystick",
+            active: true,
+            coord: posRef.current,
+            vx: x * force * speedRef.current,
+            vy: -y * force * speedRef.current,
+            speed: speedRef.current,
+            updatedAt: Date.now(),
+          });
+        }
         return;
       }
       vectorRef.current = { x: 0, y: 0, force: 0 };
       setMoving(false);
       mockStartedRef.current = false;
+      adoptingRef.current = true;
       void (async () => {
         const runtime = await readSimRuntime();
         if (
           runtime?.kind !== "joystick" ||
           runtime.updatedAt <= backgroundedAtRef.current
         ) {
+          adoptingRef.current = false;
           return;
         }
-        adoptingRef.current = true;
         posRef.current = runtime.coord;
         setCoord(runtime.coord);
         walkerRef.current?.setLngLat(runtime.coord);

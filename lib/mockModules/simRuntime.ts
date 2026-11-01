@@ -36,6 +36,20 @@ const RUNTIME_KEY = "nowhere-sim-runtime";
 const ROUTE_KEY = "nowhere-sim-route";
 
 let lastWriteAt = 0;
+let lastForegroundTickAt = 0;
+
+/**
+ * Foreground simulations advance the runtime on every JS tick. The background
+ * task must not advance a second time while those ticks are still alive – a
+ * simple in-memory heartbeat decides which side is currently in control.
+ */
+export function markForegroundTick() {
+  lastForegroundTickAt = Date.now();
+}
+
+export function foregroundTickAgeMs() {
+  return Date.now() - lastForegroundTickAt;
+}
 
 export async function readSimRuntime(): Promise<SimRuntime | null> {
   try {

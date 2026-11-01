@@ -32,6 +32,7 @@ import {
   setMockPosition,
 } from "@/lib/mockModules/mockLocation";
 import {
+  markForegroundTick,
   readSimRuntime,
   writeSimRoute,
   writeSimRuntime,
@@ -427,6 +428,7 @@ export default function SystemWalk({
     const id = setInterval(() => {
       if (!runningRef.current || pausedRef.current) return;
       if (adoptingRef.current) return;
+      markForegroundTick();
       const dt = TICK_MS / 1000;
       writeSimRuntimeThrottled({
         kind: "system",
@@ -441,7 +443,7 @@ export default function SystemWalk({
 
       if (waitingRef.current) {
         waitingRef.current.remaining -= dt;
-        feedMockIfActive(posRef.current);
+        feedMockIfActive(posRef.current, TICK_MS);
         if (waitingRef.current.remaining > 0) return;
         lastStopDistRef.current = waitingRef.current.distance;
         waitingRef.current = null;
@@ -479,7 +481,7 @@ export default function SystemWalk({
             posRef.current = stopPoint;
             walkerRef.current?.setLngLat(stopPoint);
             mapRef.current?.setCenter(stopPoint);
-            feedMockIfActive(stopPoint);
+            feedMockIfActive(stopPoint, TICK_MS);
             setProgress(total > 0 ? next.distance / total : 0);
             return;
           }
@@ -515,7 +517,7 @@ export default function SystemWalk({
       posRef.current = point;
       walkerRef.current?.setLngLat(point);
       mapRef.current?.setCenter(point);
-      feedMockIfActive(point);
+      feedMockIfActive(point, TICK_MS);
       setProgress(total > 0 ? traveled / total : 0);
     }, TICK_MS);
     return () => clearInterval(id);
@@ -547,8 +549,23 @@ export default function SystemWalk({
     const sub = AppState.addEventListener("change", (state) => {
       if (state !== "active") {
         if (state === "background") backgroundedAtRef.current = Date.now();
+        // Hand a consistent snapshot to the background task before JS may be
+        // frozen – otherwise it starts from a write that is up to ~1 s old.
+        if (runningRef.current) {
+          void writeSimRuntime({
+            kind: "system",
+            active: true,
+            coord: posRef.current,
+            routeKey: routeKeyRef.current,
+            traveled: traveledRef.current,
+            speed: speedRef.current,
+            finished: false,
+            updatedAt: Date.now(),
+          });
+        }
         return;
       }
+      adoptingRef.current = true;
       void (async () => {
         const runtime = await readSimRuntime();
         if (
@@ -556,9 +573,9 @@ export default function SystemWalk({
           runtime.routeKey !== routeKeyRef.current ||
           runtime.updatedAt <= backgroundedAtRef.current
         ) {
+          adoptingRef.current = false;
           return;
         }
-        adoptingRef.current = true;
         posRef.current = runtime.coord;
         walkerRef.current?.setLngLat(runtime.coord);
         mapRef.current?.setCenter(runtime.coord);
@@ -585,7 +602,7 @@ export default function SystemWalk({
     return () => sub.remove();
   }, []);
 
-  const startRun = () => {
+  const startRun = async () => {
     if (routeCoords.length < 2) return;
     cumRef.current = buildCumulative(routeCoords);
     traveledRef.current = 0;
@@ -604,12 +621,15 @@ export default function SystemWalk({
     const point = routeCoords[0];
     posRef.current = point;
     walkerRef.current?.setLngLat(point);
-    void setMockPosition(point[1], point[0]).then(() => {
-      if (!isMockEnabled() && !mockAlertShownRef.current) {
-        mockAlertShownRef.current = true;
-        Alert.alert(t("mock_not_active_title"), mockErrorMessage());
-      }
-    });
+    try {
+      await setMockPosition(point[1], point[0]);
+    } catch {
+      // Simulation still starts – the alert below explains the setup issue.
+    }
+    if (!isMockEnabled() && !mockAlertShownRef.current) {
+      mockAlertShownRef.current = true;
+      Alert.alert(t("mock_not_active_title"), mockErrorMessage());
+    }
     void writeSimRoute(routeKeyRef.current, routeCoords);
     void writeSimRuntime({
       kind: "system",

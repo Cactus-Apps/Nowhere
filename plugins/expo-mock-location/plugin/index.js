@@ -1,4 +1,5 @@
 const {
+  AndroidConfig,
   withDangerousMod,
   withAndroidManifest,
   withMainApplication,
@@ -91,6 +92,9 @@ function withMockLocationRegistration(config) {
 
 function withMockLocationPermissions(config) {
   return withAndroidManifest(config, (config) => {
+    config.modResults = AndroidConfig.Manifest.ensureToolsAvailable(
+      config.modResults
+    );
     const manifest = config.modResults.manifest;
 
     if (!manifest['uses-permission']) {
@@ -104,13 +108,15 @@ function withMockLocationPermissions(config) {
     ];
 
     for (const perm of permissions) {
-      const exists = manifest['uses-permission'].some(
+      let entry = manifest['uses-permission'].find(
         (p) => p.$?.['android:name'] === perm
       );
-      if (!exists) {
-        manifest['uses-permission'].push({
-          $: { 'android:name': perm },
-        });
+      if (!entry) {
+        entry = { $: { 'android:name': perm } };
+        manifest['uses-permission'].push(entry);
+      }
+      if (perm === 'android.permission.ACCESS_MOCK_LOCATION') {
+        entry.$['tools:ignore'] = 'MockLocation';
       }
     }
 

@@ -14,8 +14,8 @@ import {
 
 export const MOCK_ALTITUDE = 50;
 
-setMockUpdateHandler((lat, lng) => {
-  void setMockPosition(lat, lng);
+setMockUpdateHandler((lat, lng, durationMs) => {
+  void setMockPosition(lat, lng, false, durationMs);
 });
 
 export function startMock(lat: number, lng: number) {

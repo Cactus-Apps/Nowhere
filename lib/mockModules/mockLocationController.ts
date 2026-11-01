@@ -7,13 +7,19 @@ const { MockLocation } = NativeModules as {
   MockLocation?: {
     startMocking: (lat: number, lng: number, alt: number) => Promise<void>;
     updateLocation: (lat: number, lng: number, alt: number) => Promise<void>;
+    setTarget?: (
+      lat: number,
+      lng: number,
+      alt: number,
+      durationMs: number,
+    ) => Promise<void>;
     stopMocking: () => Promise<void>;
   };
 };
 
 export const MOCK_ALTITUDE = 50;
 
-type MockUpdateHandler = (lat: number, lng: number) => void;
+type MockUpdateHandler = (lat: number, lng: number, durationMs: number) => void;
 type BackgroundController = {
   start: () => void;
   stop: () => void;
@@ -38,8 +44,8 @@ export function setMockUpdateHandler(handler: MockUpdateHandler | null) {
   updateHandler = handler;
 }
 
-export function callMockUpdate(lat: number, lng: number) {
-  updateHandler?.(lat, lng);
+export function callMockUpdate(lat: number, lng: number, durationMs = 0) {
+  updateHandler?.(lat, lng, durationMs);
 }
 
 export function setBackgroundController(controller: BackgroundController | null) {
@@ -72,10 +78,17 @@ async function ensureNativeStarted(lat: number, lng: number) {
   lastMockError = null;
 }
 
-async function pushNativeUpdate(lat: number, lng: number) {
-  if (!MockLocation?.updateLocation) return;
+async function pushNativeUpdate(
+  lat: number,
+  lng: number,
+  durationMs = 0,
+) {
   try {
-    await MockLocation.updateLocation(lat, lng, MOCK_ALTITUDE);
+    if (MockLocation?.setTarget) {
+      await MockLocation.setTarget(lat, lng, MOCK_ALTITUDE, durationMs);
+    } else if (MockLocation?.updateLocation) {
+      await MockLocation.updateLocation(lat, lng, MOCK_ALTITUDE);
+    }
   } catch {
     // Do not surface update errors – the position will be retried on the next tick
   }
@@ -98,7 +111,12 @@ export async function enableMock(lat: number, lng: number) {
   getState().setMockActive(true);
 }
 
-export async function setMockPosition(lat: number, lng: number, hold = false) {
+export async function setMockPosition(
+  lat: number,
+  lng: number,
+  hold = false,
+  durationMs = 0,
+) {
   holding = hold;
   mockPosition = [lng, lat];
   if (!mockEnabled) {
@@ -106,12 +124,16 @@ export async function setMockPosition(lat: number, lng: number, hold = false) {
     mockEnabled = true;
     getState().setMockActive(true);
   } else {
-    await pushNativeUpdate(lat, lng);
+    await pushNativeUpdate(lat, lng, durationMs);
   }
 }
 
 export function holdMock() {
   holding = true;
+  // Freeze the native value too so it stops reporting the last cruising speed.
+  if (mockEnabled && mockPosition) {
+    void pushNativeUpdate(mockPosition[1], mockPosition[0], 0);
+  }
 }
 
 export async function disableMock() {
@@ -124,13 +146,14 @@ export async function disableMock() {
   await ensureNativeStopped();
 }
 
-export function feedMock(lat: number, lng: number) {
+export function feedMock(lat: number, lng: number, durationMs = 0) {
   if (!mockEnabled) return;
   // Only an actively running simulation needs background location updates.
   backgroundController?.start();
-  callMockUpdate(lat, lng);
+  mockPosition = [lng, lat];
+  callMockUpdate(lat, lng, durationMs);
 }
 
-export function feedMockIfActive(coord: [number, number]) {
-  feedMock(coord[1], coord[0]);
+export function feedMockIfActive(coord: [number, number], durationMs = 0) {
+  feedMock(coord[1], coord[0], durationMs);
 }

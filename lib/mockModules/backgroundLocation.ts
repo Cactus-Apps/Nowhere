@@ -5,11 +5,10 @@ import {
 import i18n from "@/lib/i18n";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
+import { setMockPosition } from "./mockLocation";
+import { setBackgroundController } from "./mockLocationController";
 import {
-  callMockUpdate,
-  setBackgroundController,
-} from "./mockLocationController";
-import {
+  foregroundTickAgeMs,
   readSimRoute,
   readSimRuntime,
   SIM_SESSION_ID,
@@ -18,12 +17,19 @@ import {
 
 const BACKGROUND_LOCATION_TASK_NAME = "nowhere-background-location";
 
-/** Minimum age so the foreground tick is not advanced twice */
-const MIN_ADVANCE_DT = 3;
+/** Ignore duplicate events that arrive closer together than this */
+const MIN_ADVANCE_DT = 0.05;
 /** Maximum step size per event (after a long pause) */
 const MAX_ADVANCE_DT = 15;
 /** Older than this → simulation is considered finished */
 const STALE_MS = 60_000;
+/**
+ * Foreground ticks advance the runtime themselves. Only take over once they
+ * have been silent for this long (e.g. while JS is frozen in the background).
+ */
+const FOREGROUND_GRACE_MS = 400;
+/** Longest interpolation window – large catch-up steps stay visible. */
+const MAX_INTERPOLATION_MS = 1000;
 
 let backgroundStarted = false;
 let starting = false;
@@ -77,10 +83,12 @@ TaskManager.defineTask(
         await stopUpdates();
         return;
       }
-      // Foreground tick writes continuously → do not advance twice
+      // Foreground JS ticks are still alive → they are in control.
+      if (foregroundTickAgeMs() < FOREGROUND_GRACE_MS) return;
       if (age < MIN_ADVANCE_DT * 1000) return;
 
       const step = Math.min(age / 1000, MAX_ADVANCE_DT);
+      const durationMs = Math.min(step * 1000, MAX_INTERPOLATION_MS);
 
       if (runtime.kind === "joystick") {
         const [lng, lat] = runtime.coord;
@@ -89,7 +97,7 @@ TaskManager.defineTask(
           lng + (runtime.vx * step) / (111320 * cos),
           lat + (runtime.vy * step) / 111320,
         ];
-        await callMockUpdate(next[1], next[0]);
+        await setMockPosition(next[1], next[0], false, durationMs);
         await writeSimRuntime({ ...runtime, coord: next, updatedAt: now });
         return;
       }
@@ -113,7 +121,7 @@ TaskManager.defineTask(
 
       if (traveled >= total) {
         const end = route[route.length - 1];
-        await callMockUpdate(end[1], end[0]);
+        await setMockPosition(end[1], end[0], false, 0);
         await writeSimRuntime({
           ...runtime,
           coord: end,
@@ -127,7 +135,7 @@ TaskManager.defineTask(
       }
 
       const coord = pointAt(route, cum, traveled);
-      await callMockUpdate(coord[1], coord[0]);
+      await setMockPosition(coord[1], coord[0], false, durationMs);
       await writeSimRuntime({ ...runtime, coord, traveled, updatedAt: now });
     } catch {
       // Never escalate task errors
@@ -148,8 +156,8 @@ export async function startBackgroundLocationUpdates() {
     if (!backgroundWanted) return;
     await Location.startLocationUpdatesAsync(BACKGROUND_LOCATION_TASK_NAME, {
       accuracy: Location.Accuracy.High,
-      timeInterval: 1000,
-      distanceInterval: 1,
+      timeInterval: 250,
+      distanceInterval: 0,
       showsBackgroundLocationIndicator: true,
       foregroundService: {
         notificationTitle: "Nowhere",

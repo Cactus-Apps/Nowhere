@@ -43,6 +43,7 @@ import {
   AppState,
   Dimensions,
   Image,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -412,6 +413,16 @@ export default function HomeScreen() {
           const { latitude, longitude } = loc.coords;
           const coord: [number, number] = [longitude, latitude];
           if (getState().mockActive) {
+            // A real fix can still slip through the fused provider – never let
+            // it pull the marker away from the simulated position. Only check
+            // on Android 12+, where the mock flag is reliable.
+            if (
+              Platform.OS === "android" &&
+              Number(Platform.Version) >= 31 &&
+              loc.mocked === false
+            ) {
+              return;
+            }
             if (!manualRef.current) setMarkerPos(coord);
             return;
           }

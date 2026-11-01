@@ -3,12 +3,12 @@
     "name": "Nowhere",
     "slug": "nowhere",
     "scheme": "nowhere",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./assets/icons/Nowhere_logo_half.png",
     "userInterfaceStyle": "dark",
     "android": {
-      "versionCode": 6,
+      "versionCode": 7,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icons/android-icon-foreground.png",
         "backgroundColor": "#333333",

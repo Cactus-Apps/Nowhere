@@ -44,9 +44,10 @@ Map data comes from [OpenStreetMap](https://openstreetmap.org) under the ODbL li
 
 ## Screenshots
 
-| Home                                                        | Route simulation                                            | Driving                                                     |
-| ----------------------------------------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------- |
-| <img src="assets/images/atlasys-demo-3d.jpg" width="180" /> | <img src="assets/images/atlasys-demo-3d.jpg" width="180" /> | <img src="assets/images/atlasys-demo-3d.jpg" width="180" /> |
+| Home                                                                     | Drive                                                                 | Walk simulation                                                      | Map                                                              |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| <img src="assets/images/github/nowhere_location_fake.jpg" width="180" /> | <img src="assets/images/github/nowhere_fake_drive.jpg" width="180" /> | <img src="assets/images/github/nowhere_fake_walk.jpg" width="180" /> | <img src="assets/images/github/nowhere_globe.jpg" width="180" /> |
+|                                                                          |
 
 ---
 
