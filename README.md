@@ -6,6 +6,20 @@
 
 **Simulate your location, on your device.**
 
+<div align="center" padding=8>
+
+  <a href="https://rookieenough.github.io/Orion-Data/app/?id=nowhere">
+    <img src="https://raw.githubusercontent.com/RookieEnough/Orion-Store/refs/heads/main/assets/orion-badge.png" alt="Get it on Orion Store" width="160" height="48" />
+  </a>
+  <a href="https://www.makerhunt.space/projects/nowhere?ref=featured-badge" title="Nowhere on MakerHunt">
+    <img src="https://www.makerhunt.space/badges/featured-on-dark.svg" alt="Featured on MakerHunt" width="160" height="48" />
+  </a>
+  <a href="https://github.com/Cactus-Apps/Nowhere/releases/latest">
+    <img src="https://raw.githubusercontent.com/Akylas/OSS-DocumentScanner/main/graphics/badge_github.png" alt="Get it on GitHub" width="160" height="48" />
+  </a>
+
+</div>
+
 [![Android](https://img.shields.io/badge/Android-Available-6ED28A?style=flat-square&logo=android&logoColor=white)](https://github.com/Cactus-Apps/Nowhere/releases)
 [![iOS](https://img.shields.io/badge/iOS-Coming_Soon-999?style=flat-square&logo=apple&logoColor=white)](https://github.com/Cactus-Apps/Nowhere/releases)
 [![License](https://img.shields.io/badge/License-GPLv3-blue?style=flat-square)](LICENSE)
